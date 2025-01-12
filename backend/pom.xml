@@ -96,6 +96,11 @@
 			<version>5.5.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.16.1</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -103,6 +108,8 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<!-- L'heap del processo JVM inizia con 512MB e arriva fino ad un massimo di 50GB -->
+					<jvmArguments>-Xms512m -Xmx50g</jvmArguments>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

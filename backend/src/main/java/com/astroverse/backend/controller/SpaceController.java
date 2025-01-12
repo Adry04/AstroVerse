@@ -1,6 +1,7 @@
 package com.astroverse.backend.controller;
 
 import com.astroverse.backend.component.JwtUtil;
+import com.astroverse.backend.model.Post;
 import com.astroverse.backend.model.Space;
 import com.astroverse.backend.model.User;
 import com.astroverse.backend.model.UserSpace;
@@ -8,6 +9,7 @@ import com.astroverse.backend.service.SpaceService;
 import com.astroverse.backend.service.UserService;
 import com.astroverse.backend.service.UserSpaceService;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,10 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @RestController
@@ -28,7 +27,7 @@ public class SpaceController {
     private final SpaceService spaceService;
     private static final String titoloRegex = "^[A-Za-zÀ-ù0-9,‘\\-\\s]{2,50}$";
     private static final String argomentoRegex = "^[A-Za-zÀ-ÿ\\s]{2,30}$";
-    private static final String descrizioneRegex = "^[\\w\\s\\p{Punct}]{1,200}$";
+    private static final String descrizioneRegex = "^[\\w\\s\\p{P}àèéìòùÀÈÉÌÒÙ]{1,200}$";
     private static final String directory = "uploads/";
     private final UserService userService;
     private final UserSpaceService userSpaceService;
@@ -61,20 +60,20 @@ public class SpaceController {
         Space createdSpace = spaceService.saveSpace(space);
         if (createdSpace != null) {
             if (file != null && !file.isEmpty()) {
-                if(!checkImageFile(file)) {
+                if (!checkImageFile(file)) {
                     response.put("error", "Formato immagine non valido");
                     return ResponseEntity.status(400).body(response);
                 }
                 Path path = Paths.get(directory);
-                Path spacePath = Paths.get(directory + "/" + createdSpace.getId() + "/");
-                if(!Files.exists(path)) {
+                Path spacePath = Paths.get(directory + "\\" + createdSpace.getId() + "\\");
+                if (!Files.exists(path)) {
                     try {
                         Files.createDirectories(path);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
-                if(!Files.exists(spacePath)) {
+                if (!Files.exists(spacePath)) {
                     try {
                         Files.createDirectories(spacePath);
                     } catch (IOException e) {
@@ -100,10 +99,25 @@ public class SpaceController {
 
     @GetMapping("/view/{id}")
     public ResponseEntity<?> viewSpace(@PathVariable Long id) {
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         Optional<Space> optional = spaceService.getSpace(id);
         if (optional.isPresent()) {
-            return ResponseEntity.ok(Map.of("message", optional.get()));
+            Space space = optional.get();
+            List<User> users = spaceService.getUsersBySpace(space);
+            response.put("message", space);
+            response.put("users", users);
+            response.put("idAdmin", spaceService.getAdmin(space));
+            List<Post> posts = spaceService.getPost(space);
+            for (Post post : posts) {
+                post.setUserData(new User(post.getUser().getId(),
+                        post.getUser().getNome(),
+                        post.getUser().getCognome(),
+                        post.getUser().getUsername(),
+                        post.getUser().getEmail())
+                );
+            }
+            response.put("posts", spaceService.getPost(space));
+            return ResponseEntity.ok(response);
         } else {
             response.put("error", "Questo spazio non esiste");
             return ResponseEntity.status(400).body(response);
@@ -128,13 +142,17 @@ public class SpaceController {
         }
         Space space = optional.get();
         UserSpace userSpace = new UserSpace(user, space);
-        if(!userSpaceService.existSubscribe(userSpace)) {
+        if (!userSpaceService.existSubscribe(userSpace)) {
             userSpaceService.saveUserSpace(userSpace);
-            response.put("message", "Iscrizione allo spazio avvenuta con successo");
+            response.put("message", "Iscrizione avvenuta con successo");
             return ResponseEntity.ok(response);
-        } else  {
-            response.put("error", "Iscrizione allo spazio già effettuata");
-            return ResponseEntity.status(400).body(response);
+        } else {
+            if (userSpaceService.deleteUserSpace(userSpace) == 0) {
+                response.put("error", "Errore nella disiscrizione");
+                return ResponseEntity.status(400).body(response);
+            }
+            response.put("message", "Disiscrizione avvenuta con successo");
+            return ResponseEntity.ok(response);
         }
     }
 
@@ -156,7 +174,7 @@ public class SpaceController {
             response.put("error", "L'utente non è iscritto allo spazio");
             return ResponseEntity.status(400).body(response);
         }
-        if(!userSpaceService.isUserAdmin(userSpace)) {
+        if (!userSpaceService.isUserAdmin(userSpace)) {
             response.put("error", "L'utente non è admin");
             return ResponseEntity.status(400).body(response);
         }
@@ -171,13 +189,13 @@ public class SpaceController {
             return ResponseEntity.status(400).body(response);
         }
         if (file != null && !file.isEmpty()) {
-            if(!checkImageFile(file)) {
+            if (!checkImageFile(file)) {
                 response.put("error", "Errore nel formato dell'immagine");
                 return ResponseEntity.status(400).body(response);
             }
             Path path = Paths.get(directory);
-            Path spacePath = Paths.get(directory + "/" + space.getId() + "/");
-            if(!Files.exists(path)) {
+            Path spacePath = Paths.get(directory + "\\" + space.getId() + "\\");
+            if (!Files.exists(path)) {
                 try {
                     Files.createDirectories(path);
                 } catch (IOException e) {
@@ -186,7 +204,7 @@ public class SpaceController {
             }
             Path oldFilePath = Paths.get(space.getImage());
             try {
-                if(Files.exists(oldFilePath)) {
+                if (Files.exists(oldFilePath)) {
                     Files.delete(oldFilePath);
                 }
             } catch (IOException e) {
@@ -215,15 +233,33 @@ public class SpaceController {
         return ResponseEntity.ok(Map.of("message", spaceService.searchSpace(param)));
     }
 
+    @GetMapping("/get-all-users/{id}/{page}")
+    public ResponseEntity<?> getAllUsers(@PathVariable long id, @PathVariable int page) {
+        Map<String, Object> response = new HashMap<>();
+        int limit = 30;
+        int offset = (page-1)*limit;
+        Optional<Space> space = spaceService.getSpace(id);
+        if (space.isPresent()) {
+            double totalNumberOfUsers = userSpaceService.getNumberOfUsers(space.get());
+            int numberOfPages = (int) Math.ceil(totalNumberOfUsers/limit);
+            Page<UserSpace> users = userSpaceService.getAllUserBySpace(space.get(), limit, offset);
+            List<String> usersUsername = users.getContent().stream().map(user -> user.getUser().getUsername()).toList();
+            response.put("users", usersUsername);
+            response.put("numberOfPages", numberOfPages);
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("error", "Spazio non esistente");
+            return ResponseEntity.status(400).body(response);
+        }
+    }
+
     protected boolean checkImageFile(MultipartFile file) {
         String contentType = file.getContentType();
-        if (contentType != null) {
-            return contentType.equals("image/jpeg") || contentType.equals("image/png");
-        } else return false;
+        return contentType.equals("image/jpeg") || contentType.equals("image/png");
     }
 
     protected boolean saveImageFile(Space space, Path spacePath, MultipartFile file) {
-        String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
+        String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename().replaceAll("\\s+", "");
         Path filePath = spacePath.resolve(fileName);
         try {
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);

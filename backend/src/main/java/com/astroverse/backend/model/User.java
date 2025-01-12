@@ -1,14 +1,16 @@
 package com.astroverse.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -18,23 +20,28 @@ import java.util.Set;
 @Table(name = "user")
 @ToString
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private boolean isAdmin;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<UserSpace> userSpaces = new HashSet<>();
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private Set<UserPost> userPosts = new HashSet<>();
+    @JsonManagedReference
+    private Set<Post> posts = new HashSet<>();
     private String nome;
     private String cognome;
     @Column(unique = true, nullable = false)
     private String username;
     @Column(unique = true, nullable = false)
     private String email;
+    @JsonIgnore
     private String password;
     private LocalDateTime createdAt;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Vote> vote;
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -53,5 +60,17 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
+    }
+
+    public User(long id) {
+        this.id = id;
+    }
+
+    public User(long id, String nome, String cognome, String username, String email) {
+        this.id = id;
+        this.nome = nome;
+        this.cognome = cognome;
+        this.username = username;
+        this.email = email;
     }
 }

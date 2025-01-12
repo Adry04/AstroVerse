@@ -5,6 +5,11 @@ import AuthView from "@/views/AuthView.vue";
 import Cookies from 'js-cookie';
 import {apiUrlToken} from "@/constants/ApiUrl.js";
 import UserView from "@/views/UserView.vue";
+import CreateSpaceView from "@/views/CreateSpaceView.vue";
+import SpaceView from "@/views/SpaceView.vue";
+import UsersSpaceView from "@/views/UsersSpaceView.vue";
+import SpaceModifyView from "@/views/SpaceModifyView.vue";
+import PostView from "@/views/PostView.vue";
 
 const checkUser = async () => {
   const accessToken = Cookies.get('accessToken') || '';
@@ -43,19 +48,49 @@ const router = createRouter({
           path: 'user',
           name: 'UserView',
           component: UserView
+        },
+        {
+          path: 'create/space',
+          name: 'CreateSpaceView',
+          component: CreateSpaceView
+        },
+        {
+          path: 'space/:id',
+          name: 'SpaceView',
+          component: SpaceView,
+        },
+        {
+          path: 'space/:id/users',
+          name: 'UsersSpaceView',
+          component: UsersSpaceView
+        },
+        {
+          path: 'space/modify/:id',
+          name: 'SpaceModifyView',
+          component: SpaceModifyView
+        },
+        {
+          path: 'space/:id/create-post',
+          name: 'PostView',
+          component: PostView
         }
       ]
     },
   ],
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { top: 0 };
+    }
+  },
 })
 
 router.beforeEach(async (to, from, next) => {
   const isValid = await checkUser()
   if (to.name === 'AuthView' && isValid) {
-    history.pushState({}, null, '/astroverse')
-    next({name: 'home'})
+    next({name: 'HomeView'})
   } else if (to.name !== 'AuthView' && !isValid) {
-    history.pushState({}, null, '/')
     next({name: 'AuthView'});
   } else {
     next();

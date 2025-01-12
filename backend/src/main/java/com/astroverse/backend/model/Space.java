@@ -1,6 +1,6 @@
 package com.astroverse.backend.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +24,7 @@ public class Space {
     private String image;
     private String description;
     @OneToMany(mappedBy = "space", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<UserSpace> userSpaces = new HashSet<>();
     private LocalDateTime createdAt;
     @PrePersist
