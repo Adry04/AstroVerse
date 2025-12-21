@@ -5,7 +5,7 @@ Trello: [AstroVerseIS](https://trello.com/b/W32LhGw5/astroverseis)
 Slack: [Progetto IS Slack](https://join.slack.com/t/progettoisadchchpl/shared_invite/zt-2rxwjgdhx-P~UW7Ups6JCDrtdBl1lEIw)  
 GitHub Repository: [AstroVerse Repository](https://github.com/PellegrinoPiccolo/AstroVerse.git)  
 AI Repository: [AstroVerseIA Repository](https://github.com/Adry04/AstroVerseIA/tree/main)  
-Last Updated: January 5, 2025 2:21 PM
+Last Updated: Monday, 22/12/2025, 18:03
 
 ![Spring Boot Social Web Application
 A project for Software Engineering course of Computer Science at University of Salerno](AstroVerse_logo.png)
@@ -17,8 +17,8 @@ A project for Software Engineering course of Computer Science at the University 
 
 ## Authors:
 
-- [**Pellegrino Piccolo**](https://github.com/PellegrinoPiccolo)*-Developer*
-- [**Adriano De Vita**](https://github.com/Adry04)-*Developer*
+- [**Pellegrino Piccolo**](https://github.com/PellegrinoPiccolo)*-Developer-AI Branch*
+- [**Adriano De Vita**](https://github.com/Adry04)-*Developer-AI Branch-Quantum Branch*
 - [**Christian Fontana**](https://github.com/chriisey)-*Developer*
 - [**Christian Bianco**](https://github.com/ChristianUnisa)-*Developer*
 
@@ -50,7 +50,7 @@ After the Artificial Intelligence module update and deployment into AstroVerse y
 
 ## PQC (Post-Quantum Cryptography) System Update
 
-After implementing a new and more robust method of Key-exchanhge, based on an hybrid solution using ECDH toghether with ML-KEM/Kyber algorithms the system is now using a standard of post-quantum cryptography approved by the NIST to cipher the email. The update is available only on the branch `quantum` of the AstroVerse repository and it is higly recommended to use this type of service when using AstroVerse so the sensible data submitted will be definitively safe against the risk of future quantum attacks at least until the breakout of a CRQC that can break the 3rd security level easily.
+After implementing a new method of Key-exchanhge, based on an hybrid solution using ECDH toghether with ML-KEM/Kyber algorithms the system is now using a standard of post-quantum cryptography approved by the NIST to cipher the user email. The update is available only on the branch `quantum` of the AstroVerse repository so the sensible data submitted will be definitively safe against the risk of future quantum attacks at least until the breakout of a CRQC that can break security level 3 easily according to the latest NIST report.
 
 ## Built with
 
