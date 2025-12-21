@@ -22,6 +22,7 @@ public class HybridCryptoService {
 
     private KeyPair serverPqcKeyPair;
     private KeyPair serverEccKeyPair;
+    private static final String KEY_GENERATION_SEED = "QUESTA_FRASE_GENERA_SEMPRE_LE_STESSE_CHIAVI_PER_ASTROVERSE_2025";
 
     static {
         Security.removeProvider("BC");
@@ -33,15 +34,23 @@ public class HybridCryptoService {
     // Per il tirocinio: "Simuliamo che queste chiavi siano persistenti in un HSM".
     @PostConstruct
     public void init() throws Exception {
-        // Generazione ML-KEM (Quantum)
+        System.out.println("🔒 Generazione Chiavi Deterministiche in corso...");
+
+        // Creiamo un generatore di casualità che parte sempre dallo stesso punto
+        SecureRandom deterministicRandom = SecureRandom.getInstance("SHA1PRNG");
+        deterministicRandom.setSeed(KEY_GENERATION_SEED.getBytes());
+
+        // 1. Genera ML-KEM (Kyber) usando il random deterministico
         KeyPairGenerator pqcKpg = KeyPairGenerator.getInstance("ML-KEM", "BC");
-        pqcKpg.initialize(MLKEMParameterSpec.ml_kem_768);
+        pqcKpg.initialize(MLKEMParameterSpec.ml_kem_768, deterministicRandom);
         serverPqcKeyPair = pqcKpg.generateKeyPair();
 
-        // Generazione ECC (Classico)
+        // 2. Genera ECC usando lo STESSO random (che ora è avanzato di stato)
         KeyPairGenerator ecKpg = KeyPairGenerator.getInstance("ECDH", "BC");
-        ecKpg.initialize(new ECGenParameterSpec("secp256r1"));
+        ecKpg.initialize(new ECGenParameterSpec("secp256r1"), deterministicRandom);
         serverEccKeyPair = ecKpg.generateKeyPair();
+
+        System.out.println("✅ Chiavi Server pronte (Stabili tra i riavvii)");
     }
 
     // Classe contenitore per i risultati
