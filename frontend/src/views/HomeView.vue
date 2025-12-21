@@ -1,5 +1,5 @@
 <script setup>
-  import {onMounted, ref, watchEffect} from "vue";
+import {onBeforeMount, onMounted, ref, watchEffect} from "vue";
   import {apiUrlToken} from "@/constants/ApiUrl.js";
   import {toast} from "vue3-toastify";
   import {useRoute, useRouter} from "vue-router";
@@ -7,6 +7,7 @@
   import {faArrowLeft, faArrowRight, faPlus} from "@fortawesome/free-solid-svg-icons";
   import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
   import "@/assets/styles/Home.css"
+  import {VaProgressCircle} from "vuestic-ui";
 
   const user = ref(null)
   const loading = ref(true)

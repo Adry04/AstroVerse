@@ -1,5 +1,5 @@
 <script setup>
-  import {onMounted, ref} from "vue";
+import {onBeforeMount, onMounted, ref} from "vue";
   import {apiTokenForm, apiUrlToken} from "@/constants/ApiUrl.js";
   import {toast} from 'vue3-toastify';
   import 'vue3-toastify/dist/index.css';
@@ -14,6 +14,10 @@
     oldPassword: '',
     newPassword: '',
     confirmNewPassword: ''
+  })
+
+  onBeforeMount(() => {
+    toast.success("Stai usando la versione quantum safe di AstroVerse! I tuoi dati sono protetti")
   })
 
   onMounted(async () => {

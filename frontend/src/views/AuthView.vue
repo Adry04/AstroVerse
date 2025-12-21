@@ -107,8 +107,8 @@
       <h1>Registrazione</h1>
       <v-text-field label="Nome" v-model="user.nome" width="400px" color="white" base-color="white"></v-text-field>
       <v-text-field label="Cognome" v-model="user.cognome" width="400px" color="white" base-color="white"></v-text-field>
-      <v-text-field label="Username" v-model="user.username" width="400px" color="white" base-color="white"></v-text-field>
-      <v-text-field label="Email" v-model="user.email" width="400px" color="white" base-color="white"></v-text-field>
+      <v-text-field type="text" label="Username" v-model="user.username" width="400px" color="white" base-color="white"></v-text-field>
+      <v-text-field type="email" label="Email" v-model="user.email" width="400px" color="white" base-color="white"></v-text-field>
       <v-text-field type="password" label="Password" v-model="user.password" width="400px" color="white" base-color="white"></v-text-field>
       <v-text-field type="password" label="Conferma Password" v-model="user.confermaPassword" width="400px" color="white" base-color="white"></v-text-field>
       <v-btn prepend-icon="astroverse-icon" variant="outlined" color="white" @click="registrationUser">
