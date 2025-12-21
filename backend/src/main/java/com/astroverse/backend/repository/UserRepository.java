@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -14,6 +16,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmailAndIdNot(String email, Long id);
     boolean existsByUsernameAndIdNot(String username, Long id);
     boolean existsByUsername(String username);
+    boolean existsByEmailHash(String emailHash);
+    // Per il metodo changeUserData
+    boolean existsByEmailHashAndIdNot(String emailHash, Long id);
     @Modifying
     @Transactional
     @Query("UPDATE User u SET u.password = :password WHERE u.username = :username")
@@ -28,7 +33,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
                        @Param("username") String username);
     User findByEmail(String email);
     User getUserById(Long id);
-
+    Optional<User> findByEmailHash(String emailHash);
+    // Per la migrazione PQC
+    List<User> findByIsQuantumEncryptedFalse();
     @Query("SELECT u.password FROM User u WHERE u.id = :id")
     String findPasswordById(@Param("id") Long id);
 }

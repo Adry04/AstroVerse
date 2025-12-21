@@ -1,6 +1,5 @@
 package com.astroverse.backend.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -34,8 +33,19 @@ public class User {
     private String cognome;
     @Column(unique = true, nullable = false)
     private String username;
-    @Column(unique = true, nullable = false)
+    @Lob    // il testo cifrato è lungo
+    @Column(columnDefinition = "LONGTEXT")
     private String email;
+    // --- CAMPI POST-QUANTUM ---
+    @Column(unique = true)
+    private String emailHash;
+    private boolean isQuantumEncrypted = false;
+    @Lob // Contenitore per la chiave
+    @Column(columnDefinition = "LONGTEXT")
+    private String quantumEncapsulation;
+    @Lob // Chiave pubblica effimera del client
+    @Column(columnDefinition = "LONGTEXT")
+    private String clientEccPublicKey;
     @JsonIgnore
     private String password;
     private LocalDateTime createdAt;

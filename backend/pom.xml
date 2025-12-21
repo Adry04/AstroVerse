@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+        <bouncycastle.version>1.83</bouncycastle.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -101,6 +102,24 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.16.1</version>
 		</dependency>
+        <!-- Il Provider principale (Crypto core) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <!-- PKIX/CMS/EAC/PKCS/OCSP/CMP/CRMF (Supporto certificati e chiavi) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <!-- Utility (Necessaria per le codifiche PQC moderne) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcutil-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<plugins>

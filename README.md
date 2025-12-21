@@ -48,6 +48,10 @@ To clone the project locally follow these steps:
 
 After the Artificial Intelligence module update and deployment into AstroVerse you have now the possibility to express your preferences freely through the macro_arguments in the autentication phase, when registering a new account, that will automatically suggest you relevant AstroVerse spaces, based on your current interests. Just make sure to use the `dev-ai/main` branch to see and use the new updates or the new release v2.1 and the Artificial Intellingence module pinned on top, inside the relative repository you will find the instruction on how to run it.
 
+## PQC (Post-Quantum Cryptography) System Update
+
+After implementing a new and more robust method of Key-exchanhge, based on an hybrid solution using ECDH toghether with ML-KEM/Kyber algorithms the system is now using a standard of post-quantum cryptography approved by the NIST to cipher the email. The update is available only on the branch `quantum` of the AstroVerse repository and it is higly recommended to use this type of service when using AstroVerse so the sensible data submitted will be definitively safe against the risk of future quantum attacks at least until the breakout of a CRQC that can break the 3rd security level easily.
+
 ## Built with
 
 - [Java](https://docs.oracle.com/en/java/javase/21/) - The programming language used for back-end development

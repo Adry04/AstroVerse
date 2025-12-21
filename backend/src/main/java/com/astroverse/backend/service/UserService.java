@@ -5,6 +5,7 @@ import com.astroverse.backend.model.Space;
 import com.astroverse.backend.model.UserSpace;
 import com.astroverse.backend.repository.UserRepository;
 import com.astroverse.backend.repository.UserSpaceRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,45 +14,85 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final UserSpaceRepository userSpaceRepository;
+    private final HybridCryptoService hybridCryptoService;
 
-    public UserService(UserRepository userRepository, UserSpaceRepository userSpaceRepository) {
+    public UserService(UserRepository userRepository, UserSpaceRepository userSpaceRepository, HybridCryptoService hybridCryptoService) {
         this.userSpaceRepository = userSpaceRepository;
         this.userRepository = userRepository;
+        this.hybridCryptoService = hybridCryptoService;
     }
 
     public User saveUser(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("Email già in uso");
         }
+        // Controllo duplicati su hash
+        String emailHash = hybridCryptoService.hashString(user.getEmail());
+        if (userRepository.existsByEmailHash(emailHash)) {
+            throw new IllegalArgumentException("Email già in uso");
+        }
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new IllegalArgumentException("Username già in uso");
         }
+        // Eseguiamo la cifratura Ibrida Post-Quantum
+        var encryptionResult = hybridCryptoService.encrypt(user.getEmail());
+
+        // Impostiamo i dati nel model User
+        user.setEmail(encryptionResult.encryptedData()); // Salviamo il cifrato
+        user.setEmailHash(emailHash); // Salviamo l'hash per le ricerche
+        user.setQuantumEncapsulation(encryptionResult.encapsulation());
+        user.setClientEccPublicKey(encryptionResult.clientEccPub());
+        user.setQuantumEncrypted(true);
         return userRepository.save(user);
     }
 
     public User getUser(String email) {
-        User user = userRepository.findByEmail(email);
+        // Effettuiamo la ricerca per hash poiché non possiamo farla per email in chiaro
+        String emailHash = hybridCryptoService.hashString(email);
+        User user = userRepository.findByEmailHash(emailHash).orElse(null);
         if (user == null) {
-            throw new IllegalArgumentException("Utente non esiste");
+            throw new IllegalArgumentException("L'utente non esiste");
+        }
+        // Se l'utente è cifrato, decifriamo l'email prima di restituire l'oggetto
+        // così il controller riceve l'email leggibile
+        if (user.isQuantumEncrypted()) {
+            String decryptedEmail = hybridCryptoService.decrypt(
+                    user.getEmail(),
+                    user.getQuantumEncapsulation(),
+                    user.getClientEccPublicKey()
+            );
+            user.setEmail(decryptedEmail); // Sostituiamo temporaneamente nell'oggetto
         }
         return user;
     }
 
     public User changeUserData(long id, String email, String username, String name, String lastName, String oldEmail, String oldUsername) {
-        if(userRepository.existsByEmailAndIdNot(email, id) && !email.equals(oldEmail)) {
+        // Calcoliamo il nuovo hash
+        String newEmailHash = hybridCryptoService.hashString(email);
+        if (userRepository.existsByEmailHashAndIdNot(newEmailHash, id) && !email.equals(oldEmail)) {
             throw new IllegalArgumentException("Email già in uso");
-        } else if(userRepository.existsByUsernameAndIdNot(username, id) && !username.equals(oldUsername)) {
+        } else if (userRepository.existsByUsernameAndIdNot(username, id) && !username.equals(oldUsername)) {
             throw new IllegalArgumentException("Username già in uso");
         }
-        User user = new User();
-        if (userRepository.updateUserById(id, name, lastName, email, username) == 0) {
-            throw new RuntimeException("Errore nella modifica dell'utente ");
+        // Recuperiamo l'utente
+        User user = userRepository.getUserById(id);
+        if (user == null) {
+            throw new RuntimeException("Utente non trovato");
         }
-        user.setEmail(email);
+        // Se l'email è cambiata, dobbiamo ricifrare tutto
+        if (!email.equals(oldEmail)) {
+            var encryptionResult = hybridCryptoService.encrypt(email);
+            user.setEmail(encryptionResult.encryptedData());
+            user.setEmailHash(newEmailHash);
+            user.setQuantumEncapsulation(encryptionResult.encapsulation());
+            user.setClientEccPublicKey(encryptionResult.clientEccPub());
+            user.setQuantumEncrypted(true);
+        }
+        // Aggiorniamo gli altri campi
         user.setUsername(username);
         user.setNome(name);
         user.setCognome(lastName);
-        return user;
+        return userRepository.save(user);
     }
 
     public void changePassword(String username, String password) {
@@ -66,6 +107,13 @@ public class UserService {
     public User getUserData(Long id) {
         if (!userRepository.existsById(id)) {
             throw new IllegalArgumentException("Utente non esistente");
+        }
+        // Per vedere la mail in chiaro nell'account
+        User user = userRepository.getUserById(id);
+        if (user.isQuantumEncrypted()) {
+            user.setEmail(hybridCryptoService.decrypt(
+                    user.getEmail(), user.getQuantumEncapsulation(), user.getClientEccPublicKey()
+            ));
         }
         return userRepository.getUserById(id);
     }

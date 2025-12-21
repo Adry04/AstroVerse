@@ -62,6 +62,7 @@ public class AuthController {
     @PostMapping("/registration")
     public ResponseEntity<?> registrationUser(@RequestParam String nome, @RequestParam String cognome, @RequestParam String email, @RequestParam String username, @RequestParam String password) {
         Map<String, String> response = new HashMap<>();
+        String originalEmail = email;
         User user = new User(nome, cognome, username, email, password);
         if (!isValidText(user.getNome(), namesRegex)) {
             response.put("error", "Nome non valido");
@@ -75,11 +76,11 @@ public class AuthController {
             response.put("error", "Username non valido");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        if(!isValidText(user.getEmail(), emailRegex)) {
+        if (!isValidText(user.getEmail(), emailRegex)) {
             response.put("error", "Email non valida");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        if(!isValidText(user.getPassword(), passwordRegex)) {
+        if (!isValidText(user.getPassword(), passwordRegex)) {
             response.put("error", "Password non valida");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -89,7 +90,9 @@ public class AuthController {
             User userWithId = userService.saveUser(user);
             String accessToken = jwtUtil.generateToken(
                     userWithId.getId(),
-                    user.getEmail(),
+                    originalEmail,
+                    //Qui è importante utilizzare l'email in chiaro affinche venga generato correttamente il token
+                    //Con getEmail altrimenti, poiché è già stata eseguita saveUser si avrebbe l'email cifrata nel token
                     user.getUsername(),
                     user.getNome(),
                     user.getCognome(),
@@ -118,7 +121,7 @@ public class AuthController {
             }
             String accessToken = jwtUtil.generateToken(
                     user.getId(),
-                    user.getEmail(),
+                    user.getEmail(),    //Qui getEmail è leggibile perché è stata decifrata da getUser (vedi UserService)
                     user.getUsername(),
                     user.getNome(),
                     user.getCognome(),
@@ -135,6 +138,8 @@ public class AuthController {
     @PostMapping("/change-user-data")
     public ResponseEntity<?> changeUserData(@RequestParam String nome, @RequestParam String cognome, @RequestParam String email, @RequestParam String username, @RequestParam String psw, @RequestParam String confirmPassword, @RequestParam String vecchiaPassword, @RequestHeader("Authorization") String token) {
         Map<String, String> response = new HashMap<>();
+        String nuovaEmailInChiaro = email; // Inizializziamo con la mail in chiaro che andremo ad utilizzare dopo
+        // poiché nelle successive operazioni, mail andrà hashata
         User user = new User(nome, cognome, username, email, psw);
         ChangeUserRequest request = new ChangeUserRequest(user, confirmPassword, vecchiaPassword);
         try {
@@ -180,7 +185,7 @@ public class AuthController {
                     userService.changePassword(user.getUsername(), hashPassword);
                 }
             }
-            String newToken = jwtUtil.generateToken(id, user.getEmail(), user.getUsername(), user.getNome(), user.getCognome(), user.isAdmin());
+            String newToken = jwtUtil.generateToken(id, nuovaEmailInChiaro, user.getUsername(), user.getNome(), user.getCognome(), user.isAdmin());
             TokenBlackList tokenBlackList = new TokenBlackList();
             tokenBlackList.setAccessToken(token);
             tokenBlackListService.saveAccessToken(tokenBlackList);
