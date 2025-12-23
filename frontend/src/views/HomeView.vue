@@ -1,5 +1,5 @@
 <script setup>
-import {onBeforeMount, onMounted, ref, watchEffect} from "vue";
+  import {onMounted, ref, watchEffect} from "vue";
   import {apiUrlToken} from "@/constants/ApiUrl.js";
   import {toast} from "vue3-toastify";
   import {useRoute, useRouter} from "vue-router";
@@ -21,6 +21,30 @@ import {onBeforeMount, onMounted, ref, watchEffect} from "vue";
   const pageRef = ref((route.query.page && route.query.page > 0 && route.query.page !== '') ? route.query.page : 1)
   const postImages = ref({})
 
+  onMounted(async () => {
+    // Recupero dati utente dal backend
+    await apiUrlToken.get('/auth/view-account')
+      .then((response) => {
+        user.value = response.data.user;
+        // --- VERIFICA STATO PQC ---
+        // 1. Controlla se il backend conferma la cifratura (flag dal DB)
+        // 2. Controlla se la notifica e' gia' stata mostrata in questa sessione
+        if (user.value.isQuantumEncrypted && !sessionStorage.getItem('quantum_toast_shown')) {
+          // Feedback visivo all'utente
+          toast.success("Accesso sicuro: Crittografia Post-Quantum attiva!", {
+            duration: 5000,
+            dismissible: true
+          });
+          // Flag di sessione per non ripetere la notifica
+          sessionStorage.setItem('quantum_toast_shown', 'true');
+        } else if (!user.value.isQuantumEncrypted && !sessionStorage.getItem('quantum_toast_shown')) {
+          toast.warning("Non sei protetto contro gli attacchi post-quantum")
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  });
 
   onMounted(async () => {
     await apiUrlToken.get('/auth/view-account')

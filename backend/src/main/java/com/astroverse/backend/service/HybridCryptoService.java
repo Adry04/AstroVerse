@@ -25,13 +25,10 @@ public class HybridCryptoService {
     private static final String KEY_GENERATION_SEED = "QUESTA_FRASE_GENERA_SEMPRE_LE_STESSE_CHIAVI_PER_ASTROVERSE_2025";
 
     static {
-        Security.removeProvider("BC");
         Security.addProvider(new BouncyCastleProvider());
     }
 
     // Al'avvio del server, generiamo le chiavi MASTER del server.
-    // NOTA: Se riavvii il server, perdi le chiavi e non decifri più i dati vecchi.
-    // Per il tirocinio: "Simuliamo che queste chiavi siano persistenti in un HSM".
     @PostConstruct
     public void init() throws Exception {
         System.out.println("🔒 Generazione Chiavi Deterministiche in corso...");
@@ -57,8 +54,8 @@ public class HybridCryptoService {
     public record EncryptionResult(String encryptedData, String encapsulation, String clientEccPub) {}
 
     /**
-     * FASE 1: REGISTRAZIONE / CIFRATURA
-     * Simula il client che crea le chiavi e cifra il dato.
+     * FASE 1: CIFRATURA
+     * Crea le chiavi e cifra il dato.
      */
     public EncryptionResult encrypt(String plainData) {
         try {
@@ -95,7 +92,7 @@ public class HybridCryptoService {
     }
 
     /**
-     * FASE 2: LETTURA / DECIFRATURA
+     * FASE 2: DECIFRATURA
      * Il server usa i metadati salvati nel DB per ricostruire la chiave.
      */
     public String decrypt(String encryptedData, String encapsulationStr, String clientEccPubStr) {

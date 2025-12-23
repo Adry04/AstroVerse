@@ -2,6 +2,7 @@ package com.astroverse.backend.component;
 
 import com.astroverse.backend.model.Post;
 import com.astroverse.backend.model.UserSpace;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,4 +23,6 @@ public class UserDTO {
     private String cognome;
     private String username;
     private String email;
+    @JsonProperty("isQuantumEncrypted")
+    private boolean isQuantumEncrypted;
 }

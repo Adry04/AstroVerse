@@ -234,7 +234,7 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
             User user = userService.getUserData(idString);
-            UserDTO userDTO = new UserDTO(user.getUserSpaces(), user.getPosts(), user.getNome(), user.getCognome(), user.getUsername(), user.getEmail());
+            UserDTO userDTO = new UserDTO(user.getUserSpaces(), user.getPosts(), user.getNome(), user.getCognome(), user.getUsername(), user.getEmail(), user.isQuantumEncrypted());
             response.put("user", userDTO);
             response.put("spaces", userService.getSpaceByUser(user));
             return ResponseEntity.ok(response);
